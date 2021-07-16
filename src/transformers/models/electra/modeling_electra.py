@@ -805,7 +805,7 @@ class ElectraModel(ElectraPreTrainedModel):
         self.embeddings = ElectraEmbeddings(config)
 
         if config.embedding_size != config.hidden_size:
-            self.embeddings_project = nn.Linear(config.embedding_size, config.hidden_size)
+            self.embeddings_project = nn.Linear(config.embedding_size*2, config.hidden_size)
 
         self.encoder = ElectraEncoder(config)
         self.config = config
@@ -843,6 +843,7 @@ class ElectraModel(ElectraPreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
+        phonetic_embeds=None
     ):
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
@@ -878,6 +879,9 @@ class ElectraModel(ElectraPreTrainedModel):
         hidden_states = self.embeddings(
             input_ids=input_ids, position_ids=position_ids, token_type_ids=token_type_ids, inputs_embeds=inputs_embeds
         )
+
+        if phonetic_embeds is not None:
+            hidden_states = torch.cat((hidden_states, phonetic_embeds), dim=-1)
 
         if hasattr(self, "embeddings_project"):
             hidden_states = self.embeddings_project(hidden_states)
@@ -1144,6 +1148,7 @@ class ElectraForMaskedLM(ElectraPreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
+        phonetic_embeds=None,
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size, sequence_length)`, `optional`):
@@ -1163,6 +1168,7 @@ class ElectraForMaskedLM(ElectraPreTrainedModel):
             output_attentions,
             output_hidden_states,
             return_dict,
+            phonetic_embeds
         )
         generator_sequence_output = generator_hidden_states[0]
 
