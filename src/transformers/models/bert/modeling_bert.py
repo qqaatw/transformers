@@ -862,6 +862,8 @@ class BertModel(BertPreTrainedModel):
 
         self.pooler = BertPooler(config) if add_pooling_layer else None
 
+        self.embeddings_project = nn.Linear(config.hidden_size*2, config.hidden_size)
+
         self.init_weights()
 
     def get_input_embeddings(self):
@@ -900,6 +902,7 @@ class BertModel(BertPreTrainedModel):
         output_attentions=None,
         output_hidden_states=None,
         return_dict=None,
+        phonetic_embeds=None
     ):
         r"""
         encoder_hidden_states  (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length, hidden_size)`, `optional`):
@@ -988,6 +991,11 @@ class BertModel(BertPreTrainedModel):
             inputs_embeds=inputs_embeds,
             past_key_values_length=past_key_values_length,
         )
+
+        if phonetic_embeds is not None:
+            embedding_output = torch.cat((embedding_output, phonetic_embeds), dim=-1)
+
+        embedding_output = self.embeddings_project(embedding_output)
         encoder_outputs = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
