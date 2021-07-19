@@ -994,8 +994,8 @@ class BertModel(BertPreTrainedModel):
 
         if phonetic_embeds is not None:
             embedding_output = torch.cat((embedding_output, phonetic_embeds), dim=-1)
-
-        embedding_output = self.embeddings_project(embedding_output)
+            embedding_output = self.embeddings_project(embedding_output)
+        
         encoder_outputs = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
